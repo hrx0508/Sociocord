@@ -1,0 +1,20 @@
+import express from 'express'
+import { upload } from '../config/multer.config.js'
+import { forgetPassword, googleAuth, loginUser, logoutUser, registerUser } from '../controllers/auth.controller.js'
+import passport from 'passport'
+
+const router = express.Router()
+
+router.post("/",upload.single("image"), registerUser)
+router.get("/google", passport.authenticate("google", {scope:['profile', 'email']}))
+router.post("/login", loginUser)
+router.get("/google/callback", passport.authenticate("google", { session: false,
+    failureRedirect: '/'
+ }), googleAuth)
+
+ router.post('/logout', logoutUser)
+ 
+ router.post('/forget-password', forgetPassword)
+
+
+export default router;
