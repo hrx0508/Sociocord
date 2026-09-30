@@ -10,8 +10,8 @@ redis.on("connect", () => {
     console.log("Redis connected")
 })
 
-redis.on("error", (err) => {
-    console.log("Redis error:", err);
+redis.on("error", (error) => {
+    console.log("Redis error:", error);
 });
 
 

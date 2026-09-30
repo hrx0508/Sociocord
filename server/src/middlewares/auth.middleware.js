@@ -9,31 +9,24 @@ export const authMiddleware = async (req, res, next) => {
     try {
         let token = req.cookies.accessToken;
 
-        if (!token) throw new ApiError(400, "Token is required")
+        if (!token) throw new ApiError(401, "AccessToken is required")
 
-        const isTokenBlacklisted = await redis.get(`bearer:accessToken:${accessToken}`)
+        const isTokenBlacklisted = await redis.get(`Bearer:accessToken:${token}`)
 
-        if (isTokenBlacklisted) return res.status(401).json({
-            success: false,
-            message: "Token is invalid"
-        })
+        if (isTokenBlacklisted) throw new ApiError(401, "Token is invalid");
 
         let decode = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-        if (!decode)
-            return res.status(401).json({
-                success: false,
-                message: "Unauthorized"
-            })
+        let user = await UserModel.findById(decode.id).select("-password")
 
-            let user = await UserModel.findById(decode.id).select("-password")
-             
-            req.user = user;
-            next();
+        if (!user) {
+            throw new ApiError(401, "User not found");
+        }
+
+        req.user = user;
+
+        next();
     } catch (error) {
-            return res.status(400).json({
-                success: false,
-                message: "Validation Error"
-            })
+        next(error);
     }
 }

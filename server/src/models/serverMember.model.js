@@ -18,5 +18,4 @@ const serverMemberSchema = new mongoose.Schema({
 })
 
 const serverMemberModel = mongoose.model("ServerMember", serverMemberSchema)
-
 export default serverMemberModel;

@@ -5,16 +5,10 @@ const userSchema = mongoose.Schema({
     username: {
         type: String,
         require: true,
-        trim: true,
-        unique: true,
-        minLength: 3,
-        maxLength: 20
     },
     fullname: {
         type: String,
         required: true,
-        minLength: 2,
-        maxLength: 50
     },
     email: {
         type: String,
@@ -23,7 +17,6 @@ const userSchema = mongoose.Schema({
     },
     password: {
         type: String,
-        minLength: 6,
         select: false
     },
     dob: {
@@ -47,10 +40,6 @@ const userSchema = mongoose.Schema({
         enum: ["local", "google"],
         default: "local"
     },
-    server: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "servers"
-    }],
     friends: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "users"
@@ -71,6 +60,6 @@ userSchema.methods.comparePass = function (password) {
     return bcrypt.compareSync(password, this.password)
 }
 
-const UserModel = mongoose.model("users", userSchema)
+const userModel = mongoose.model("users", userSchema)
 
-export default UserModel;
+export default userModel;

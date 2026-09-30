@@ -7,8 +7,12 @@ import {Strategy as GoogleStrategy} from 'passport-google-oauth20'
 import authRoutes from "../routes/auth.routes.js"
 import serverRoutes from "../routes/server.routes.js"
 import { errorMiddleware } from "../middlewares/error.middleware.js";
+import http from 'http';
+import { initializeSocket } from "../socket/socket.js";
 
 const app = express()
+export const server = http.createServer(app);
+initializeSocket(server)
 
 app.use(express.json())
 app.use(cookieParser())

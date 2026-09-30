@@ -1,5 +1,7 @@
+import channelModel from "../models/channel.model.js"
 import roleModel from "../models/role.model.js"
 import serverModel from "../models/server.model.js"
+import { createServerMember } from "../services/serverMember.service.js"
 import sendFiles from "../services/storage.service.js"
 import { generateInviteCode } from "../utils/inviteCode.js"
 
@@ -49,6 +51,25 @@ export const createServer = async (req, res) => {
             postion: 100
         })
 
+
+        const memberRole = await roleModel.create({
+            name:"member",
+            server: server._id,
+            permissions:[],
+            positions: 10
+        })
+
+        const defaultChannels = await channelModel.create({
+            name: "#general-chat",
+            server: server._id,
+            position: 10
+        },{
+            name: "announcement",
+            server: server._id,
+            postion:2,
+            type: "voice"
+        })
+
         const serverMember = await createServerMember(req.user.id, server._id,[ownerRole._id])
 
 
@@ -85,7 +106,6 @@ export const getAllServer = async(req, res) => {
     }
 }
 
-
 export const getSingleServer = async(req, res) => {
     try {
         const {id} = req.params
@@ -106,12 +126,9 @@ export const getSingleServer = async(req, res) => {
     }
 }
 
-
 export const deleteServer = async(req, res) => {
 
 }
-
-
 
 export const joinServer = async(req, res, next) => {
     try {
