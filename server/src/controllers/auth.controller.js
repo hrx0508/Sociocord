@@ -121,18 +121,14 @@ export const loginUser = async (req, res, next) => {
             new ApiResponse(200, userData, "User login successfully")
         )
     } catch (error) {
-        next(TypeError)
+        next(error)
     }
-
 
 }
 
 export const googleAuth = async (req, res) => {
-    //Google authentication gives user information in req.user._json.
-    //In Google OAuth, sub is the user's unique Google ID.
     const { email, name, given_name, picture, sub } = req.user._json
     console.log(req.user)
-
     const user = await userModel.findOne({ email })
 
     if (user) {
@@ -140,63 +136,66 @@ export const googleAuth = async (req, res) => {
             user.googleId = sub
             await user.save()
         }
+
+        const accessToken = generateToken(user._id, "15min")
+        const refreshToken = generateToken(user._id, "2d")
+
+
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            maxAge: 15 * 60 * 1000
+        })
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            maxAge: 2 * 24 * 60 * 60 * 1000
+        })
+
+        res.redirect('http://localhost:5173/')
+
+        return res.status(200).json({
+            success: true,
+            message: "user loggedin successfully",
+            user
+        })
+
     }
 
-    const accessToken = generateToken(user._id, "15min")
-    const refreshToken = generateToken(user._id, "2d")
-    
-    res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        maxAge: 15 * 60 * 1000
-    })
-    
-    res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        maxAge: 2 * 24 * 60 * 60 * 1000
-    })
-    
-    res.redirect("http://localhost:5173/")
-    
-    return res.status(200).json({
-        success: true,
-        message: "User loggedIn successfully",
-        user
-    })
-    
     const newUser = await userModel.create({
         username: given_name,
         fullname: name,
         email,
         profile_pic: picture,
-        googleId:sub,
+        googleId: sub,
         authProvider: req.user.provider
     })
-    
+
+
+
     const accessToken = generateToken(newUser._id, "15min")
     const refreshToken = generateToken(newUser._id, "2d")
-    
+
+
     res.cookie("accessToken", accessToken, {
         httpOnly: true,
         maxAge: 15 * 60 * 1000
     })
-    
+
     res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         maxAge: 2 * 24 * 60 * 60 * 1000
     })
 
-    res.redirect("http://localhost:5173/")
-
-    return res.status(200).json({
+    res.redirect('http://localhost:5173/')
+    return res.status(201).json({
         success: true,
-        message: "User loggedIn successfully",
+        message: "user register successfully",
         newUser
     })
 
 }
 
 export const logoutUser = async (req, res) => {
-
     //get access and refresh token from cookies
     const { accessToken, refreshToken } = req.cookies
 
@@ -291,7 +290,7 @@ export const verifyOtp = async (req, res) => {
 
     if (!hashedOtp) return res.status(404).json({
         success: false,
-        message: "Otp is required or not found"
+        message: "Otp is expired or not found"
     })
 
     const isValid = bcrypt.compareSync(otp, hashedOtp)
@@ -377,7 +376,7 @@ export const refreshToken = async (req, res) => {
 
     const user = await userModel.findById(decoded.id)
 
-    if(!user){
+    if (!user) {
         return res.status(404).json({
             success: false,
             message: "User not found"

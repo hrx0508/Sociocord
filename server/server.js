@@ -1,5 +1,5 @@
-import { server } from "./server/src/app/app.js";
-import { connectDb } from "./server/src/config/db.config.js";
+import { server } from "./src/app/app.js";
+import { connectDb } from "./src/config/db.config.js";
 
 
 connectDb()
